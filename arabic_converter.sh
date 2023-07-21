@@ -27,3 +27,25 @@ function check_input() {
         exit 1
     fi
 }
+
+# Convert all files in a folder to UTF-8 encoding
+# e.g. WINDOWS-1256 -> UTF-8
+function subtitle_convert() {
+    check_input
+    echo "Converting all files in '$FOLDER_PATH' to UTF-8 encoding"
+
+    find "$FOLDER_PATH" -type f -print0 | while IFS= read -r -d '' file; do
+        if [[ $file == *.srt ]]; then
+            charset="$(file -bi "$file" | awk -F "=" '{print $2}')"
+            if [ "$charset" != utf-8 ]; then
+                iconv -cf WINDOWS-1256 -t utf-8 "$file" >"$file.new" &&
+                    mv -f "$file.new" "$file" &&
+                    echo "$file"
+            fi
+        fi
+    done
+
+    exit 0
+}
+
+subtitle_convert
